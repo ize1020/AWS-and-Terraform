@@ -21,7 +21,6 @@ EOF
 }
 
 #step 2
-#create a resource from EBS volume in same AZ as os1
 resource "aws_ebs_volume" "ebs1"{
  availability_zone = aws_instance.isaac-lab.availability_zone
  size = 10
