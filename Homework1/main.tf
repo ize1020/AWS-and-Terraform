@@ -3,37 +3,33 @@ provider "aws" {
   region = "us-east-1"
 }
 resource "aws_instance" "grandpa-web" {
-ami = "ami-04505e74c0741db8d"
-instance_type ="t3.micro"
-tags = {
-  Name = "isaac.grandpa.whiskey2"
- }
- key_name = "ZOHAR"
-  user_data = <<EOF
-#!/bin/bash -xe
-sudo apt-get install nginx -y
-sudo chmod 777 /var/www/html/index.nginx-debian.html
-sudo echo 'Welcome to Grandpa's Whiskey' >/var/www/html/index.nginx-debian.html
-sudo service nginx restart
-EOF
+	count = var.instance_count
+	ami = lookup(var.ami,var.aws_region)
+	instance_type = var.instance_type
+	tags = {
+	  Name = element(var.instance_tags, count.index)
+	}
+	 key_name = "ZOHAR"
+	 user_data = <<EOF
+	  #!/bin/bash -xe
+	  sudo apt-get install nginx -y
+	  sudo chmod 777 /var/www/html/index.nginx-debian.html
+	  sudo echo 'Welcome to Grandpa's Whiskey' >/var/www/html/index.nginx-debian.html
+	  sudo service nginx restart
+	  EOF
 }
 
-#step 2
-#create a resource from EBS volume in same AZ as os1
-resource "aws_ebs_volume" "ebs2"{
- availability_zone = aws_instance.grandpa-web.availability_zone
- size = 10
- encrypted = true
- tags = {
-  Name = "Extra_EBS"
- }
+ebs_block_device {
+  device_name           = var.ebs_device_name
+  volume_size           = var.ebs_volume_size
+  volume_type           = var.ebs_volume_type
+  delete_on_termination = var.ebs_volume_delete_on_termination
+  encrypted             = var.ebs_volume_encrypted
 }
-
-
-#step 3 
-#attach volume
-resource "aws_volume_attachment" "attach_ebs_2"{
-device_name = "/dev/sdh"
-volume_id = aws_ebs_volume.ebs2.id
-instance_id =aws_instance.grandpa-web.id
+  
+root_block_device {
+  volume_type           = var.root_volume_type
+  volume_size           = var.root_volume_size
+  delete_on_termination = var.root_volume_delete_on_termination
+  encrypted             = var.root_volume_encrypted
 }
