@@ -12,3 +12,13 @@ terraform {
     encrypt        = true
   }
 }
+
+terraform {
+-  backend "remote" {
++  cloud {
+    organization = "itzhak-org"
+    workspaces {
+    name = "Stage"
+    }
+   }
+ }
